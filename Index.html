@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Around the clock - Darts tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0a1628;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;}
+.page{min-height:100vh;padding:24px 16px;display:flex;justify-content:center;}
+.atc{width:100%;max-width:680px;color:#fff;}
+.hdr-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.hdr-icon{width:38px;height:38px;background:#FAC775;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#412402;font-size:19px;flex-shrink:0;}
+.hdr-title{font-size:19px;font-weight:500;color:#fff;line-height:1.2;}
+.hdr-sub{font-size:12px;color:#85B7EB;margin-top:2px;}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;}
+.pill-sc{background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.13);border-radius:20px;padding:3px 11px;font-size:11px;color:#B5D4F4;}
+.pill-sc b{color:#FAC775;font-weight:500;}
+.divider{border:none;border-top:0.5px solid rgba(255,255,255,0.1);margin:0 0 18px;}
+.sec-label{font-size:10px;font-weight:500;color:#FAC775;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+.mcard{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px 16px;}
+.mcard .ml{font-size:10px;color:#85B7EB;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;}
+.mcard .mv{font-size:26px;font-weight:500;color:#fff;line-height:1;}
+.mcard .ms{font-size:11px;color:#378ADD;margin-top:4px;}
+.mcard.accent .mv{color:#FAC775;}
+.entry-card{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:16px;margin-bottom:20px;}
+.entry-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:10px;color:#85B7EB;text-transform:uppercase;letter-spacing:0.06em;}
+input[type=date],input[type=number],input[type=text]{background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.2);border-radius:7px;color:#fff;padding:0 10px;height:36px;font-size:13px;outline:none;font-family:inherit;}
+input[type=date]{width:145px;}
+input[type=number]{width:80px;}
+input[type=text]{width:170px;}
+input::placeholder{color:rgba(255,255,255,0.3);}
+input:focus{border-color:#378ADD;}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.5;}
+.add-btn{height:36px;padding:0 20px;background:#FAC775;color:#412402;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.add-btn:hover{background:#EFB84A;}
+.add-btn:active{transform:scale(0.98);}
+.err{font-size:12px;color:#F09595;margin-top:8px;display:none;}
+.hist-card{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;margin-bottom:20px;}
+.hist-hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:0.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);}
+.hist-hdr span{font-size:10px;font-weight:500;color:#85B7EB;text-transform:uppercase;letter-spacing:0.07em;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{font-size:10px;font-weight:500;color:#85B7EB;text-align:left;padding:9px 14px;border-bottom:0.5px solid rgba(255,255,255,0.1);text-transform:uppercase;letter-spacing:0.05em;background:rgba(255,255,255,0.03);}
+tbody td{padding:11px 14px;border-bottom:0.5px solid rgba(255,255,255,0.07);color:#E8E8E8;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:rgba(255,255,255,0.04);}
+.sc{font-size:16px;font-weight:500;color:#FAC775;}
+.sc sub{font-size:11px;font-weight:400;color:rgba(255,255,255,0.4);}
+.bar-row{display:flex;align-items:center;gap:8px;}
+.bar-bg{width:60px;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;}
+.bar-fill{height:100%;background:#378ADD;border-radius:3px;}
+.pct{font-size:12px;color:#85B7EB;}
+.badge{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;}
+.bg{background:rgba(99,153,34,0.25);color:#C0DD97;}
+.ba{background:rgba(186,117,23,0.25);color:#FAC775;}
+.bp{background:rgba(226,75,74,0.25);color:#F09595;}
+.note-cell{font-size:12px;color:rgba(255,255,255,0.4);font-style:italic;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.del{background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.25);font-size:16px;padding:2px 4px;line-height:1;}
+.del:hover{color:#F09595;}
+.empty{text-align:center;padding:36px 16px;color:rgba(255,255,255,0.25);font-size:13px;}
+.empty i{display:block;font-size:32px;margin:0 auto 10px;opacity:0.4;}
+.chart-wrap{background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;display:none;margin-bottom:20px;}
+.chart-hdr{padding:10px 16px;border-bottom:0.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);}
+.chart-hdr span{font-size:10px;font-weight:500;color:#85B7EB;text-transform:uppercase;letter-spacing:0.07em;}
+.chart-body{padding:14px 16px;}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="atc">
+
+  <div class="hdr-top">
+    <div class="hdr-icon"><i class="ti ti-target-arrow"></i></div>
+    <div>
+      <div class="hdr-title">Around the clock</div>
+      <div class="hdr-sub">Practice tracker &middot; max 66 points</div>
+    </div>
+  </div>
+  <div class="pills">
+    <span class="pill-sc"><b>1pt</b> single</span>
+    <span class="pill-sc"><b>2pt</b> double</span>
+    <span class="pill-sc"><b>3pt</b> treble</span>
+    <span class="pill-sc"><b>1pt</b> 25</span>
+    <span class="pill-sc"><b>2pt</b> bull</span>
+  </div>
+
+  <hr class="divider">
+  <div class="sec-label">Statistics</div>
+  <div class="metrics">
+    <div class="mcard"><div class="ml">Sessions</div><div class="mv" id="s-n">0</div></div>
+    <div class="mcard accent"><div class="ml">Best score</div><div class="mv" id="s-best">-</div><div class="ms" id="s-best-sub"></div></div>
+    <div class="mcard"><div class="ml">Average</div><div class="mv" id="s-avg">-</div><div class="ms" id="s-avg-sub"></div></div>
+    <div class="mcard"><div class="ml">Trend</div><div class="mv" id="s-trend" style="font-size:18px;padding-top:4px;">-</div></div>
+  </div>
+
+  <hr class="divider">
+  <div class="sec-label">Log a session</div>
+  <div class="entry-card">
+    <div class="entry-row">
+      <div class="field"><label for="d">Date</label><input type="date" id="d"></div>
+      <div class="field"><label for="sc">Score (0-66)</label><input type="number" id="sc" min="0" max="66" placeholder="39"></div>
+      <div class="field"><label for="nt">Note (optional)</label><input type="text" id="nt" placeholder="e.g. felt sharp today"></div>
+      <button class="add-btn" onclick="add()"><i class="ti ti-plus"></i>Add session</button>
+    </div>
+    <p class="err" id="err"></p>
+  </div>
+
+  <hr class="divider">
+  <div class="sec-label">Session history</div>
+  <div class="hist-card">
+    <div class="hist-hdr">
+      <span>All sessions</span>
+      <span id="cnt" style="color:rgba(255,255,255,0.3);font-size:10px;text-transform:uppercase;letter-spacing:0.07em;"></span>
+    </div>
+    <div id="tbody">
+      <div class="empty"><i class="ti ti-dartboard"></i>No sessions yet - log your first practice above</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap" id="cw">
+    <div class="chart-hdr"><span>Score over time</span></div>
+    <div class="chart-body"><canvas id="ch" height="160"></canvas></div>
+  </div>
+
+</div>
+</div>
+
+<script>
+const MAX = 66;
+let S = [];
+let chart = null;
+
+const today = () => new Date().toISOString().split('T')[0];
+document.getElementById('d').value = today();
+
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmt = s => { const [y,m,d] = s.split('-'); return `${+d} ${months[+m-1]} ${y}`; };
+const rtg = v => { const p = v/MAX; return p >= 0.7 ? ['Excellent','bg'] : p >= 0.45 ? ['Average','ba'] : ['Needs work','bp']; };
+
+function save() {
+  try { localStorage.setItem('atc_v5', JSON.stringify(S)); } catch(e) {}
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem('atc_v5');
+    if (raw) S = JSON.parse(raw);
+  } catch(e) {}
+  render();
+}
+
+function add() {
+  const dv = document.getElementById('d').value;
+  const sv = document.getElementById('sc').value;
+  const nv = document.getElementById('nt').value.trim();
+  const er = document.getElementById('err');
+  if (!dv) { er.textContent = 'Please pick a date.'; er.style.display = 'block'; return; }
+  const n = parseInt(sv);
+  if (isNaN(n) || n < 0 || n > MAX) { er.textContent = 'Score must be 0-66.'; er.style.display = 'block'; return; }
+  er.style.display = 'none';
+  S.push({ id: Date.now(), date: dv, score: n, note: nv });
+  S.sort((a,b) => a.date.localeCompare(b.date));
+  document.getElementById('sc').value = '';
+  document.getElementById('nt').value = '';
+  document.getElementById('d').value = today();
+  save(); render();
+}
+
+function del(id) { S = S.filter(s => s.id !== id); save(); render(); }
+
+function render() {
+  const n = S.length;
+  document.getElementById('s-n').textContent = n;
+  document.getElementById('cnt').textContent = n ? `${n} session${n === 1 ? '' : 's'}` : '';
+  if (!n) {
+    ['s-best','s-avg','s-trend'].forEach(id => document.getElementById(id).textContent = '-');
+    document.getElementById('s-best-sub').textContent = '';
+    document.getElementById('s-avg-sub').textContent = '';
+  } else {
+    const best = Math.max(...S.map(s => s.score));
+    const avg = Math.round(S.reduce((a,s) => a + s.score, 0) / n);
+    document.getElementById('s-best').textContent = best;
+    document.getElementById('s-best-sub').textContent = `${Math.round(best/MAX*100)}% of max`;
+    document.getElementById('s-avg').textContent = avg;
+    document.getElementById('s-avg-sub').textContent = 'out of 66';
+    if (n < 3) {
+      document.getElementById('s-trend').textContent = '-';
+    } else {
+      const rc = S.slice(-3).map(s => s.score);
+      const er2 = S.length > 3 ? S.slice(-6,-3).map(s => s.score) : rc;
+      const diff = Math.round(rc.reduce((a,v) => a+v, 0)/rc.length - er2.reduce((a,v) => a+v, 0)/er2.length);
+      document.getElementById('s-trend').textContent = diff > 0 ? `up +${diff}` : diff < 0 ? `down ${diff}` : 'stable';
+    }
+  }
+  renderTable(); renderChart();
+}
+
+function renderTable() {
+  const area = document.getElementById('tbody');
+  if (!S.length) {
+    area.innerHTML = '<div class="empty"><i class="ti ti-dartboard"></i>No sessions yet - log your first practice above</div>';
+    return;
+  }
+  const rows = [...S].reverse().map(s => {
+    const [lb, cls] = rtg(s.score);
+    const pct = Math.round(s.score / MAX * 100);
+    return `<tr>
+      <td>${fmt(s.date)}</td>
+      <td><span class="sc">${s.score}<sub> / 66</sub></span></td>
+      <td><div class="bar-row"><div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div><span class="pct">${pct}%</span></div></td>
+      <td><span class="badge ${cls}">${lb}</span></td>
+      <td class="note-cell">${s.note || ''}</td>
+      <td><button class="del" onclick="del(${s.id})" title="Delete session"><i class="ti ti-trash"></i></button></td>
+    </tr>`;
+  }).join('');
+  area.innerHTML = `<table><thead><tr><th>Date</th><th>Score</th><th>Progress</th><th>Rating</th><th>Note</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function renderChart() {
+  const cw = document.getElementById('cw');
+  if (S.length < 2) { cw.style.display = 'none'; return; }
+  cw.style.display = 'block';
+  if (chart) { chart.destroy(); chart = null; }
+  chart = new Chart(document.getElementById('ch').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: S.map(s => fmt(s.date)),
+      datasets: [{
+        data: S.map(s => s.score),
+        borderColor: '#378ADD',
+        backgroundColor: 'rgba(55,138,221,0.1)',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#FAC775',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.parsed.y} / 66 (${Math.round(c.parsed.y/MAX*100)}%)` } } },
+      scales: {
+        y: { min: 0, max: 66, ticks: { color: '#85B7EB', stepSize: 11 }, grid: { color: 'rgba(255,255,255,0.07)' } },
+        x: { ticks: { color: '#85B7EB', maxRotation: 35, font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.07)' } }
+      }
+    }
+  });
+}
+
+load();
+</script>
+</body>
+</html>
